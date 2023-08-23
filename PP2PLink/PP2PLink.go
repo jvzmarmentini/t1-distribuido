@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
 	"strconv"
 )
 
@@ -81,6 +82,7 @@ func (module *PP2PLink) Start(address string) {
 					_, err := io.ReadFull(conn, bufTam)
 					if err != nil {
 						module.outDbg("erro : " + err.Error() + " conexao fechada pelo outro processo.")
+						os.Exit(0)
 						break
 					}
 					tam, err := strconv.Atoi(string(bufTam))

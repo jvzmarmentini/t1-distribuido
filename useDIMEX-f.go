@@ -1,5 +1,5 @@
-// Construido como parte da disciplina: Sistemas Distribuidos - PUCRS - Escola Politecnica
 //  Professor: Fernando Dotti  (https://fldotti.github.io/)
+// Construido como parte da disciplina: Sistemas Distribuidos - PUCRS - Escola Politecnica
 // Uso p exemplo:
 //   go run usaDIMEX.go 0 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002 ")
 //   go run usaDIMEX.go 1 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002 ")

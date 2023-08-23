@@ -1,5 +1,5 @@
+// Professor: Fernando Dotti  (https://fldotti.github.io/)
 /*  Construido como parte da disciplina: FPPD - PUCRS - Escola Politecnica
-    Professor: Fernando Dotti  (https://fldotti.github.io/)
     Modulo representando Algoritmo de Exclusão Mútua Distribuída:
     Semestre 2023/1
 	Aspectos a observar:
@@ -133,24 +133,26 @@ func (module *DIMEX_Module) Start() {
 // ------------------------------------------------------------------------------------
 
 func (module *DIMEX_Module) handleUponReqEntry() {
-	/*
-					upon event [ dmx, Entry  |  r ]  do
-		    			lts.ts++
-		    			myTs := lts
-		    			resps := 0
-		    			para todo processo p
-							trigger [ pl , Send | [ reqEntry, r, myTs ]
-		    			estado := queroSC
-	*/
+	module.lcl++
+	module.reqTs = module.lcl
+	module.nbrResps = 0
+
+	for p, address := range module.addresses {
+		if p != module.id {
+			module.sendToLink(address, fmt.Sprintf("[reqEntry, %d, %v]", module.id, module.reqTs), "      REQ >>  ")
+		}
+	}
+
+	module.st = wantMX
 }
 
 func (module *DIMEX_Module) handleUponReqExit() {
-	/*
-						upon event [ dmx, Exit  |  r  ]  do
-		       				para todo [p, r, ts ] em waiting
-		          				trigger [ pl, Send | p , [ respOk, r ]  ]
-		    				estado := naoQueroSC
-	*/
+	for p, address := range module.addresses {
+		if module.waiting[p] {
+			module.sendToLink(address, fmt.Sprintf("[respOk, %d]", module.id), "      RSP <<  ")
+		}
+	}
+	module.st = noMX
 }
 
 // ------------------------------------------------------------------------------------
@@ -160,14 +162,11 @@ func (module *DIMEX_Module) handleUponReqExit() {
 // ------------------------------------------------------------------------------------
 
 func (module *DIMEX_Module) handleUponDeliverRespOk(msgOutro PP2PLink.PP2PLink_Ind_Message) {
-	/*
-						upon event [ pl, Deliver | p, [ respOk, r ] ]
-		      				resps++
-		      				se resps = N
-		    				então trigger [ dmx, Deliver | free2Access ]
-		  					estado := estouNaSC
-
-	*/
+	module.nbrResps++
+	if module.nbrResps == len(module.addresses)-1 {
+		module.Ind <- dmxResp{} // Inform application that access is granted
+		module.st = inMX
+	}
 }
 
 func (module *DIMEX_Module) handleUponDeliverReqEntry(msgOutro PP2PLink.PP2PLink_Ind_Message) {
@@ -183,6 +182,7 @@ func (module *DIMEX_Module) handleUponDeliverReqEntry(msgOutro PP2PLink.PP2PLink
 		        				então  postergados := postergados + [p, r ]
 		     					lts.ts := max(lts.ts, rts.ts)
 	*/
+	
 }
 
 // ------------------------------------------------------------------------------------
