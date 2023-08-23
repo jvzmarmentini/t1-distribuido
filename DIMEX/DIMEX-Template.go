@@ -152,7 +152,12 @@ func (module *DIMEX_Module) handleUponReqExit() {
 			module.sendToLink(address, fmt.Sprintf("[respOk, %d]", module.id), "RSP AFTER EXIT <<  ")
 		}
 	}
+
 	module.st = noMX
+
+	for i := 0; i < len(module.waiting); i++ {
+		module.waiting[i] = false
+	}
 }
 
 // ------------------------------------------------------------------------------------

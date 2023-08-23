@@ -83,8 +83,6 @@ func main() {
 			return
 		}
 
-		time.Sleep(50 * time.Millisecond)
-
 		dmx.Req <- DIMEX.EXIT //
 		fmt.Println("[ APP id: ", id, " FORA   MX ]")
 	}
