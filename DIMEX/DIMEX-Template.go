@@ -111,13 +111,13 @@ func (module *DIMEX_Module) Start() {
 				}
 
 			case msgOutro := <-module.Pp2plink.Ind: // vindo de outro processo
-				//fmt.Printf("dimex recebe da rede: ", msgOutro)
-				if strings.Contains(msgOutro.Message, "respOK") {
-					module.outDbg("         <<<---- responde! " + msgOutro.Message)
+				// fmt.Printf("dimex recebe da rede: ", msgOutro)
+				if strings.Contains(msgOutro.Message, "respOk") {
+					module.outDbg("<<<---- responde! " + msgOutro.Message)
 					module.handleUponDeliverRespOk(msgOutro) // ENTRADA DO ALGORITMO
 
 				} else if strings.Contains(msgOutro.Message, "reqEntry") {
-					module.outDbg("          <<<---- pede??  " + msgOutro.Message)
+					module.outDbg("<<<---- pede??  " + msgOutro.Message)
 					module.handleUponDeliverReqEntry(msgOutro) // ENTRADA DO ALGORITMO
 
 				}
@@ -139,7 +139,7 @@ func (module *DIMEX_Module) handleUponReqEntry() {
 
 	for p, address := range module.addresses {
 		if p != module.id {
-			module.sendToLink(address, fmt.Sprintf("[reqEntry, %d, %v]", module.id, module.reqTs), "      REQ >>  ")
+			module.sendToLink(address, fmt.Sprintf("[reqEntry, %d, %v]", module.id, module.reqTs), "REQ >>  ")
 		}
 	}
 
@@ -149,7 +149,7 @@ func (module *DIMEX_Module) handleUponReqEntry() {
 func (module *DIMEX_Module) handleUponReqExit() {
 	for p, address := range module.addresses {
 		if module.waiting[p] {
-			module.sendToLink(address, fmt.Sprintf("[respOk, %d]", module.id), "      RSP <<  ")
+			module.sendToLink(address, fmt.Sprintf("[respOk, %d]", module.id), "RSP AFTER EXIT <<  ")
 		}
 	}
 	module.st = noMX
@@ -170,19 +170,18 @@ func (module *DIMEX_Module) handleUponDeliverRespOk(msgOutro PP2PLink.PP2PLink_I
 }
 
 func (module *DIMEX_Module) handleUponDeliverReqEntry(msgOutro PP2PLink.PP2PLink_Ind_Message) {
-	// outro processo quer entrar na SC
-	/*
-						upon event [ pl, Deliver | p, [ reqEntry, r, rts ]  do
-		     				se (estado == naoQueroSC)   OR
-		        				 (estado == QueroSC AND  myTs >  ts)
-							então  trigger [ pl, Send | p , [ respOk, r ]  ]
-		 					senão
-		        				se (estado == estouNaSC) OR
-		           					 (estado == QueroSC AND  myTs < ts)
-		        				então  postergados := postergados + [p, r ]
-		     					lts.ts := max(lts.ts, rts.ts)
-	*/
+	var reqId, reqTs int
+	fmt.Sscanf(msgOutro.Message, "[reqEntry, %d, %d]", &reqId, &reqTs)
+
+	if module.st == noMX || (module.st != inMX && before(module.id, module.reqTs, reqId, reqTs)) {
+    module.sendToLink(module.addresses[reqId], fmt.Sprintf("[respOk, %d]", module.id), "      RSP <<  ")
+	} else {
+			module.waiting[reqId] = true
+	}
 	
+	if module.lcl < reqTs {
+		module.lcl = reqTs
+	}
 }
 
 // ------------------------------------------------------------------------------------
@@ -190,24 +189,24 @@ func (module *DIMEX_Module) handleUponDeliverReqEntry(msgOutro PP2PLink.PP2PLink
 // ------------------------------------------------------------------------------------
 
 func (module *DIMEX_Module) sendToLink(address string, content string, space string) {
-	module.outDbg(space + " ---->>>>   to: " + address + "     msg: " + content)
+	module.outDbg("to: " + address + "     msg: " + content)
 	module.Pp2plink.Req <- PP2PLink.PP2PLink_Req_Message{
 		To:      address,
 		Message: content}
 }
 
 func before(oneId, oneTs, othId, othTs int) bool {
-	if oneTs < othTs {
+	if oneTs > othTs {
 		return true
-	} else if oneTs > othTs {
+	} else if oneTs < othTs {
 		return false
 	} else {
-		return oneId < othId
+		return oneId > othId
 	}
 }
 
 func (module *DIMEX_Module) outDbg(s string) {
 	if module.dbg {
-		fmt.Println(". . . . . . . . . . . . [ DIMEX : " + s + " ]")
+		fmt.Println("[ DIMEX : " + s + " ]")
 	}
 }

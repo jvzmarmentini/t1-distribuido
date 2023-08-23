@@ -45,6 +45,7 @@ func main() {
 		dmx.Req <- DIMEX.ENTER
 		fmt.Println("[ APP id: ", id, " ESPERA MX ]")
 		<-dmx.Ind //
+		time.Sleep(1 * time.Second)
 		fmt.Println("[ APP id: ", id, " *EM*   MX ]")
 		dmx.Req <- DIMEX.EXIT //
 		fmt.Println("[ APP id: ", id, " FORA   MX ]")

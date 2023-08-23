@@ -51,7 +51,7 @@ func main() {
 	// fmt.Print("id: ", id, "   ") fmt.Println(addresses)
 
 	var dmx *DIMEX.DIMEX_Module = DIMEX.NewDIMEX(addresses, id, true)
-	fmt.Println(dmx)
+	// fmt.Println(dmx)
 
 	file, err := os.OpenFile("./mxOUT.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -60,12 +60,12 @@ func main() {
 	}
 	defer file.Close() // Ensure the file is closed at the end of the function
 
-	time.Sleep(3 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	for {
 		fmt.Println("[ APP id: ", id, " PEDE   MX ]")
 		dmx.Req <- DIMEX.ENTER
-		//fmt.Println("[ APP id: ", id, " ESPERA MX ]")
+		fmt.Println("[ APP id: ", id, " ESPERA MX ]")
 		<-dmx.Ind //
 
 		_, err = file.WriteString("|") // marca entrada no arquivo
@@ -76,11 +76,14 @@ func main() {
 
 		fmt.Println("[ APP id: ", id, " *EM*   MX ]")
 
-		_, err = file.WriteString(".") // marca saida no arquivo
+		// _, err = file.WriteString(".") // marca saida no arquivo
+		_, err = file.WriteString(strconv.Itoa(id)) // marca saida no arquivo
 		if err != nil {
 			fmt.Println("Error writing to file:", err)
 			return
 		}
+
+		time.Sleep(50 * time.Millisecond)
 
 		dmx.Req <- DIMEX.EXIT //
 		fmt.Println("[ APP id: ", id, " FORA   MX ]")
