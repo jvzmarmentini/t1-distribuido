@@ -182,7 +182,16 @@ func (module *DIMEX_Module) handleUponDeliverReqEntry(msgOutro PP2PLink.PP2PLink
 		        				então  postergados := postergados + [p, r ]
 		     					lts.ts := max(lts.ts, rts.ts)
 	*/
-	
+	var reqId, reqTs int
+	fmt.Sscanf(msgOutro.Message, "[reqEntry, %d, %d]", &reqId, &reqTs)
+	if module.st == noMX || (module.st == wantMX && before(module.id, module.reqTs, reqId, reqTs)) {
+		module.sendToLink(module.addresses[reqId], fmt.Sprintf("[respOk, %d]", module.id), "      RSP <<  ")
+	} else {
+		if module.st == inMX || (module.st == wantMX && module.reqTs < reqTs) {
+			module.waiting[reqId] = true
+		}
+		module.lcl = max(module.lcl, reqTs)
+	}
 }
 
 // ------------------------------------------------------------------------------------
@@ -197,13 +206,7 @@ func (module *DIMEX_Module) sendToLink(address string, content string, space str
 }
 
 func before(oneId, oneTs, othId, othTs int) bool {
-	if oneTs < othTs {
-		return true
-	} else if oneTs > othTs {
-		return false
-	} else {
-		return oneId < othId
-	}
+	return oneTs < othTs || (oneTs == othTs && oneId < othId)
 }
 
 func (module *DIMEX_Module) outDbg(s string) {
