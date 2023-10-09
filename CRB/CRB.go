@@ -2,22 +2,16 @@ package CORB
 
 import (
 	"fmt"
-	BEB "SD/BEB" // Import the BEB module
+	BEB "SD/BEB"
 )
 
 type CORB_Module struct {
 	ID          int
-	BEBModule   *BEB.BEB_Module // Best Effort Broadcast module
-	VectorClock []int           // Vector clock for causal ordering
+	BEBModule   *BEB.BEB_Module 
+	VectorClock []int           
 	Buffer      []BEB.BroadcastMessage
-	Acknowledgments map[int]int // Acknowledgments for reliability
 }
 
-type Message struct {
-	SenderID   int
-	Msg   string
-	Timestamp []int
-}
 
 func NewCORB(_addresses []string, _id int, _dbg bool) *CORB_Module {
 	if _dbg {
@@ -31,7 +25,6 @@ func NewCORB(_addresses []string, _id int, _dbg bool) *CORB_Module {
 		BEBModule:       beb,
 		VectorClock:     make([]int, len(_addresses)),
 		Buffer:          make([]BEB.BroadcastMessage, 0),
-		Acknowledgments: make(map[int]int),
 	}
 
 	corb.Start()
