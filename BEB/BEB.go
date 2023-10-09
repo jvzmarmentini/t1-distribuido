@@ -9,8 +9,6 @@ type BEB_Module struct {
 	ID      int
 	PP2P    *PP2PLink.PP2PLink
 	addresses []string
-
-	Pp2plink *PP2PLink.PP2PLink
 }
 
 func NewBEB(_addresses []string, _id int, _dbg bool) *BEB_Module {
