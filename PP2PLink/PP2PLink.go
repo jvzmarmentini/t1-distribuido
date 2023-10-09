@@ -25,13 +25,15 @@ import (
 )
 
 type PP2PLink_Req_Message struct {
-	To      string
-	Message string
+	To        string
+	Message   string
+	Timestamp []int
 }
 
 type PP2PLink_Ind_Message struct {
-	From    string
-	Message string
+	From      string
+	Message   string
+	Timestamp []int
 }
 
 type PP2PLink struct {

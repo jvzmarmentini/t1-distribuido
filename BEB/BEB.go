@@ -5,10 +5,22 @@ import (
 	PP2PLink "SD/PP2PLink"
 )
 
+type BroadcastMessage struct {
+	SenderID   int
+	Timestamp  []int
+	Message    string
+}
+
 type BEB_Module struct {
-	ID      int
-	PP2P    *PP2PLink.PP2PLink
-	addresses []string
+	ID               int
+	PP2P             *PP2PLink.PP2PLink
+	BroadcastMessageChannel chan Message             // Channel for sending messages to broadcast
+	addresses        []string
+}
+
+type Message struct {
+	Msg   string
+	Timestamp []int
 }
 
 func NewBEB(_addresses []string, _id int, _dbg bool) *BEB_Module {
@@ -19,9 +31,10 @@ func NewBEB(_addresses []string, _id int, _dbg bool) *BEB_Module {
 	pp2p := PP2PLink.NewPP2PLink(_addresses[_id], _dbg)
 
 	beb := &BEB_Module{
-		ID:        	_id,
-		PP2P:      	pp2p,
-		addresses: 	_addresses,
+		ID:                    _id,
+		PP2P:                  pp2p,
+		BroadcastMessageChannel: make(chan Message),
+		addresses:             _addresses,
 	}
 
 	beb.Start()
@@ -33,11 +46,10 @@ func (beb *BEB_Module) Start() {
 	// Function to send predefined messages that identify the process
 	go func() {
 		for {
-			msg := fmt.Sprintf("Hello from Process %d", beb.ID)
-
+			msg := <-beb.BroadcastMessageChannel
 			for _, addr := range beb.addresses {
-				beb.Send(msg, addr)
-			}
+                beb.Send(msg, addr)
+            }		
 		}
 	}()
 
@@ -50,14 +62,15 @@ func (beb *BEB_Module) Start() {
 	}()
 }
 
-func (beb *BEB_Module) Send(message string, destAddr string) {
-	fmt.Printf("Process %d broadcasting to %s\n", beb.ID, destAddr)
-	beb.PP2P.Req <- PP2PLink.PP2PLink_Req_Message{
-		To:      destAddr,
-		Message: message,
-	}
+func (beb *BEB_Module) Send(message Message, destAddr string) {
+    fmt.Printf("Process %d broadcasting to %s\n", beb.ID, destAddr)
+    beb.PP2P.Req <- PP2PLink.PP2PLink_Req_Message{
+        To:      destAddr,
+        Message: message.Msg,
+		Timestamp: message.Timestamp,
+    }
 }
 
 func (p *BEB_Module) Deliver(message PP2PLink.PP2PLink_Ind_Message) {
-	fmt.Printf("Process %d received from %s: %s\n", p.ID, message.From, message.Message)
+    fmt.Printf("Process %d received from %s: %s\n", p.ID, message.From, message.Message)
 }

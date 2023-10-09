@@ -13,6 +13,11 @@ type CORB_Module struct {
 	Acknowledgments map[int]int // Acknowledgments for reliability
 }
 
+type Message struct {
+	Msg   string
+	Timestamp []int
+}
+
 func NewCORB(_addresses []string, _id int, _dbg bool) *CORB_Module {
 	if _dbg {
 		fmt.Println("Initializing CORB")
@@ -102,24 +107,26 @@ func (corb *CORB_Module) Deliver(message BEB.BroadcastMessage) {
 				}
 			}
 			if bufferedMsgCanDeliver {
-				deliverableMessages = append(deliverableMessages, bufferedMsg)
+				// Deliver the buffered message
+				fmt.Printf("Process %d received from %d (Buffered): %s\n", corb.ID, bufferedMsg.SenderID, bufferedMsg.Message)
+				// Update the local vector clock
+				for i := range bufferedMsg.Timestamp {
+					corb.VectorClock[i] = max(corb.VectorClock[i], bufferedMsg.Timestamp[i])
+				}
 			} else {
-				break // Stop checking if one message cannot be delivered yet
+				// Add the non-deliverable message back to the buffer
+				deliverableMessages = append(deliverableMessages, bufferedMsg)
 			}
 		}
-		for _, deliverableMsg := range deliverableMessages {
-			// Deliver the buffered message
-			fmt.Printf("Process %d received from %d (Buffered): %s\n", corb.ID, deliverableMsg.SenderID, deliverableMsg.Message)
-			// Update the local vector clock
-			for i := range deliverableMsg.Timestamp {
-				corb.VectorClock[i] = max(corb.VectorClock[i], deliverableMsg.Timestamp[i])
-			}
-		}
+
+		// Update the buffer with the remaining undelivered messages
+		corb.Buffer = deliverableMessages
 	} else {
 		// Buffer the message for later delivery
 		corb.Buffer = append(corb.Buffer, message)
 	}
 }
+
 
 func max(a, b int) int {
 	if a > b {
