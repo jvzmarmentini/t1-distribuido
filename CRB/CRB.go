@@ -14,6 +14,7 @@ type CORB_Module struct {
 }
 
 type Message struct {
+	SenderID   int
 	Msg   string
 	Timestamp []int
 }
@@ -39,38 +40,33 @@ func NewCORB(_addresses []string, _id int, _dbg bool) *CORB_Module {
 }
 
 func (corb *CORB_Module) Start() {
-	// Function to handle incoming BEB broadcast messages
 	go func() {
 		for {
-			message := <-corb.BEBModule.BroadcastChannel
+			message := <-corb.BEBModule.BroadcastMessageChannel
 			corb.Deliver(message)
 		}
 	}()
 
-	// Function to broadcast messages
 	go func() {
 		for {
 			message := <-corb.BEBModule.BroadcastMessageChannel
-			corb.Broadcast(message)
+			corb.Broadcast(message.Message)
 		}
 	}()
 }
 
 func (corb *CORB_Module) Broadcast(message string) {
-	// Increment the local vector clock
 	corb.VectorClock[corb.ID]++
 	localTimestamp := make([]int, len(corb.VectorClock))
 	copy(localTimestamp, corb.VectorClock)
 
-	// Create a broadcast message with the message content and local vector clock
 	broadcastMessage := BEB.BroadcastMessage{
-		SenderID:   corb.ID,
-		Timestamp:  localTimestamp,
+		SenderID:  corb.ID,
 		Message:    message,
+		Timestamp:  localTimestamp,
 	}
 
-	// Send the broadcast message using the BEB module
-	corb.BEBModule.BroadcastChannel <- broadcastMessage
+	corb.BEBModule.BroadcastMessageChannel <- broadcastMessage
 }
 
 func (corb *CORB_Module) Deliver(message BEB.BroadcastMessage) {

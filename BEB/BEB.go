@@ -14,7 +14,7 @@ type BroadcastMessage struct {
 type BEB_Module struct {
 	ID               int
 	PP2P             *PP2PLink.PP2PLink
-	BroadcastMessageChannel chan Message             // Channel for sending messages to broadcast
+	BroadcastMessageChannel chan BroadcastMessage             // Channel for sending messages to broadcast
 	addresses        []string
 }
 
@@ -33,7 +33,7 @@ func NewBEB(_addresses []string, _id int, _dbg bool) *BEB_Module {
 	beb := &BEB_Module{
 		ID:                    _id,
 		PP2P:                  pp2p,
-		BroadcastMessageChannel: make(chan Message),
+		BroadcastMessageChannel: make(chan BroadcastMessage),
 		addresses:             _addresses,
 	}
 
@@ -62,11 +62,11 @@ func (beb *BEB_Module) Start() {
 	}()
 }
 
-func (beb *BEB_Module) Send(message Message, destAddr string) {
+func (beb *BEB_Module) Send(message BroadcastMessage, destAddr string) {
     fmt.Printf("Process %d broadcasting to %s\n", beb.ID, destAddr)
     beb.PP2P.Req <- PP2PLink.PP2PLink_Req_Message{
         To:      destAddr,
-        Message: message.Msg,
+        Message: message.Message,
 		Timestamp: message.Timestamp,
     }
 }

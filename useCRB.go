@@ -4,6 +4,7 @@ import (
 	"os"
 	"time"
 	"strconv"
+	BEB "SD/BEB"
 	CRB "SD/CRB"
 )
 
@@ -14,14 +15,14 @@ func main() {
 	crb := CRB.NewCORB(addresses, id, true)
 
 	time.Sleep(3 * time.Second)
-	msg := CRB.Message{
-		Msg:   "Hello from " + strconv.Itoa(id) + "!",
+	msg := BEB.BroadcastMessage{
+		SenderID:   id,
+		Message:   "Hello from " + strconv.Itoa(id) + "!",
 		Timestamp: nil,
 	}
 
-	// Keep the main program running
 	for {
-		crb.BroadcastMessageChannel <- msg
+		crb.BEBModule.BroadcastMessageChannel <- msg
 		time.Sleep(1 * time.Second)
 	}
 }
