@@ -13,11 +13,6 @@ type CORB_Module struct {
 	Acknowledgments map[int]int // Acknowledgments for reliability
 }
 
-type Message struct {
-	Msg   string
-	Timestamp []int
-}
-
 func NewCORB(_addresses []string, _id int, _dbg bool) *CORB_Module {
 	if _dbg {
 		fmt.Println("Initializing CORB")

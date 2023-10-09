@@ -15,14 +15,12 @@ func main() {
 
 	time.Sleep(3 * time.Second)
 
-	msg := BEB.Message{
-		Msg:   "Hello from " + strconv.Itoa(id) + "!",
-		Timestamp: nil,
+	msg := BEB.BroadcastMessage{
+		SenderID: id,
+		Message:   "Hello from " + strconv.Itoa(id) + "!",
 	}
 
-	// Keep the main program running
-	for {
-		beb.BroadcastMessageChannel <- msg
-		time.Sleep(1 * time.Second)
-	}
+
+	beb.BroadcastMessageChannel_IN <- msg
+	time.Sleep(1 * time.Second)
 }

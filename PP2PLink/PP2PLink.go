@@ -27,13 +27,11 @@ import (
 type PP2PLink_Req_Message struct {
 	To        string
 	Message   string
-	Timestamp []int
 }
 
 type PP2PLink_Ind_Message struct {
 	From      string
 	Message   string
-	Timestamp []int
 }
 
 type PP2PLink struct {
@@ -98,6 +96,7 @@ func (module *PP2PLink) Start(address string) {
 						From:    conn.RemoteAddr().String(),
 						Message: string(bufMsg)}
 					// ATE AQUI:  procedimentos para receber msg
+					
 					module.Ind <- msg //               // repassa mensagem para modulo superior
 				}
 			}()
